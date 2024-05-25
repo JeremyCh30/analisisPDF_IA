@@ -1,0 +1,35 @@
+/* Estilos para la página upload.html */
+
+/* Estilos generales */
+.container {
+    margin-top: 50px;
+}
+
+/* Estilos para los botones de carga */
+.btn-upload {
+    display: block;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+/* Estilos para las vistas previas de los archivos cargados */
+.preview-card {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+/* Estilos para el botón de carga y análisis */
+.analyze-btn {
+    display: block;
+    margin: 0 auto;
+    margin-top: 50px;
+}
+
+/* Estilos para la tarjeta de vista previa */
+.preview-card {
+    display: none;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    padding: 10px;
+}

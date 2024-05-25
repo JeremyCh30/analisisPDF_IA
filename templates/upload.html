@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Cargar Archivos PDF</title>
+    <!-- Incluir Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Incluir estilos personalizados -->
+    <link href="{{ url_for('static', filename='css/styleUpload.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4 mt-n4">Cargar Archivos PDF para Análisis</h1>
+        <form action="/" method="post" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="file1" class="btn btn-success btn-upload">Seleccionar Archivo 1</label>
+                    <input id="file1" type="file" name="file1" class="file-upload" accept="application/pdf" required style="display: none;">
+                    <div id="preview1" class="mt-2"></div>
+                </div>
+                <div class="col-md-6">
+                    <label for="file2" class="btn btn-success btn-upload">Seleccionar Archivo 2</label>
+                    <input id="file2" type="file" name="file2" class="file-upload" accept="application/pdf" required style="display: none;">
+                    <div id="preview2" class="mt-2"></div>
+                </div>
+            </div>
+            <div class="row mt-4"> <!-- Crear una nueva fila para el botón -->
+                <div class="col text-center"> <!-- Utilizar una columna con centrado horizontal -->
+                    <input id="analyzeBtn" type="submit" class="btn btn-primary" value="Cargar y Analizar" style="display: none;">
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Incluir jQuery y Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Incluir script personalizado -->
+    <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+</body>
+</html>
