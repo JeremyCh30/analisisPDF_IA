@@ -8,19 +8,16 @@ from collections import Counter
 from flask import Flask, request, render_template, redirect, url_for
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('Agg') #Se agrega debido a error OSError: [WinError 10038],Una solución común es establecer un backend que no dependa de una interfaz de usuario. Puedes hacer esto configurando matplotlib para usar un backend que no requiera una interfaz de usuario, como el backend Agg.
-
+matplotlib.use('Agg')
 
 app = Flask(__name__)
 
-# Configurar la carpeta de static
 STATIC_FOLDER = 'static'
 if not os.path.exists(STATIC_FOLDER):
     os.makedirs(STATIC_FOLDER)
 
 app.config['STATIC_FOLDER'] = STATIC_FOLDER 
 
-# Función para leer texto de un archivo PDF
 def read_pdf(file_path):
     with open(file_path, 'rb') as file:
         reader = PyPDF2.PdfReader(file)
@@ -29,20 +26,17 @@ def read_pdf(file_path):
             text += page.extract_text()
     return text
 
-# Función para limpiar y tokenizar texto
 def clean_and_tokenize(text):
-    text = re.sub(r'\s+', ' ', text)  # Eliminar espacios en blanco extra
-    text = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]', '', text)  # Eliminar caracteres no alfabéticos
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]', '', text)
     tokens = nltk.word_tokenize(text.lower())
     return tokens
 
-# Función para calcular la riqueza léxica
 def lexical_richness(tokens):
     unique_tokens = set(tokens)
     richness = len(unique_tokens) / len(tokens)
-    return round(richness, 2)  # Limitar a 2 números decimales
+    return round(richness, 2)
 
-# Función para calcular la similitud basada en n-gramas
 def calculate_similarity(text1, text2, n=3):
     ngrams1 = list(ngrams(text1, n))
     ngrams2 = list(ngrams(text2, n))
@@ -53,33 +47,34 @@ def calculate_similarity(text1, text2, n=3):
     total = sum((counter1 | counter2).values())
     
     similarity = intersection / total if total != 0 else 0
-    return round(similarity * 100, 2)  # Regresar como porcentaje y limitar a 2 números decimales
+    return round(similarity * 100, 2)
 
-# Función para generar la gráfica de palabras más comunes
-def generate_word_frequency_chart(tokens, num_words=10):
-    # Filtrar palabras comunes y stopwords
+def generate_word_frequency_chart(tokens1, tokens2, color1='skyblue', color2='lightcoral', num_words=10):
     stop_words = set(stopwords.words('spanish'))
-    filtered_words = [word for word in tokens if word not in stop_words]
+    filtered_words1 = [word for word in tokens1 if word not in stop_words]
+    filtered_words2 = [word for word in tokens2 if word not in stop_words]
     
-    # Calcular frecuencia de palabras
-    word_freq = Counter(filtered_words)
+    word_freq1 = Counter(filtered_words1)
+    word_freq2 = Counter(filtered_words2)
     
-    # Filtrar palabras con menos de 4 caracteres
-    filtered_word_freq = {word: freq for word, freq in word_freq.items() if len(word) > 3}
+    filtered_word_freq1 = {word: freq for word, freq in word_freq1.items() if len(word) > 3}
+    filtered_word_freq2 = {word: freq for word, freq in word_freq2.items() if len(word) > 3}
     
-    # Seleccionar las 'num_words' palabras más comunes
-    top_words = dict(sorted(filtered_word_freq.items(), key=lambda item: item[1], reverse=True)[:num_words])
+    top_words1 = dict(sorted(filtered_word_freq1.items(), key=lambda item: item[1], reverse=True)[:num_words])
+    top_words2 = dict(sorted(filtered_word_freq2.items(), key=lambda item: item[1], reverse=True)[:num_words])
     
-    # Crear la gráfica de barras
-    plt.figure(figsize=(10, 6))
-    plt.barh(list(top_words.keys()), list(top_words.values()), color='skyblue')
-    plt.xlabel('Frecuencia')
-    plt.ylabel('Palabras')
-    plt.title('Palabras más comunes')
-    plt.gca().invert_yaxis()  # Invertir el eje y para mostrar las palabras de forma vertical
-    plt.tight_layout()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bar_width = 0.35
+    index = range(num_words)
+    ax.barh(index, list(top_words1.values()), bar_width, color=color1, label='Archivo 1')
+    ax.barh([i + bar_width for i in index], list(top_words2.values()), bar_width, color=color2, label='Archivo 2')
+    ax.set_ylabel('Palabras')
+    ax.set_xlabel('Frecuencia')
+    ax.set_title('Comparación de palabras más comunes')
+    ax.set_yticks([i + bar_width / 2 for i in index])
+    ax.set_yticklabels(list(top_words1.keys()))
+    ax.legend()
 
-    # Guardar la gráfica como imagen en la carpeta static
     graph_path = os.path.join(app.config['STATIC_FOLDER'], 'word_frequency_chart.png')
     plt.savefig(graph_path)
 
@@ -92,31 +87,25 @@ def upload_files():
         file2 = request.files['file2']
         
         if file1 and file2:
-            # Guardar archivos temporalmente
             file1_path = os.path.join(app.config['STATIC_FOLDER'], file1.filename)
             file2_path = os.path.join(app.config['STATIC_FOLDER'], file2.filename)
             file1.save(file1_path)
             file2.save(file2_path)
             
             try:
-                # Leer y procesar textos
                 text1 = read_pdf(file1_path)
                 text2 = read_pdf(file2_path)
                 tokens1 = clean_and_tokenize(text1)
                 tokens2 = clean_and_tokenize(text2)
                 
-                # Calcular riqueza léxica
                 richness1 = lexical_richness(tokens1)
                 richness2 = lexical_richness(tokens2)
                 
-                # Calcular similitud de plagio
                 similarity = calculate_similarity(tokens1, tokens2)
                 
-                # Generar gráfica de palabras más comunes
-                graph_path = generate_word_frequency_chart(tokens1)
+                graph_path = generate_word_frequency_chart(tokens1, tokens2)
                 
             finally:
-                # Asegurarse de que los archivos se eliminen después de procesar
                 try:
                     os.remove(file1_path)
                 except FileNotFoundError:
@@ -131,7 +120,6 @@ def upload_files():
 
 @app.route('/back', methods=['GET', 'POST'])
 def back():
-    # Eliminar la imagen generada al presionar el botón "Volver"
     graph_path = os.path.join(app.config['STATIC_FOLDER'], 'word_frequency_chart.png')
     if os.path.exists(graph_path):
         os.remove(graph_path)
